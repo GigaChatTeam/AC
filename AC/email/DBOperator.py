@@ -5,6 +5,17 @@ import psycopg2
 connection = psycopg2.connect(host='localhost', port=5432, user='postgres', password='password')
 
 
+def save_token(id, token):
+    cursor = connection.cursor()
+
+    cursor.execute('''
+    INSERT INTO public.ttokens (client, token, hashed, extradition, intentions)
+    VALUES (%s, %s, FALSE, %s, ARRAY['CONFIRM', 'EMAIL'])
+    ''', (id, token, datetime.datetime.now()))
+
+    connection.commit()
+
+
 def verify_token(id, token):
     cursor = connection.cursor()
 
@@ -33,7 +44,7 @@ def close_tokens(id):
             blocked = %s,
             reason = 'verification has already been made'
         WHERE
-            id = %s AND
+            client = %s AND
             intentions = ARRAY['CONFIRM', 'EMAIL'] AND
             blocked IS NULL
         ''', (datetime.datetime.now(), id))
