@@ -1,3 +1,3 @@
-from . import DBOperator as operator
+from . import DBOperator
 from . import validator
 from .generator import *

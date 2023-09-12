@@ -22,31 +22,31 @@ def register(request):
             or request.GET.get('password', None) is None \
             or request.GET.get('contact', None) is None:
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'LackOfArguments'
         }, status=400)
 
     if not helper.validator.validate_name(request.GET['username']):
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'BadName'
         }, status=400)
 
     if not helper.validator.validate_password(request.GET['password']):
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'BadPassword'
         }, status=400)
 
     if helper.validator.CheckAvailability.username(request.GET['username']):
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'UsernameAlreadyRegistered'
-        }, status=400)
+        }, status=409)
 
     contact_type = determining_login_type(request.GET['contact'])
 
@@ -54,50 +54,48 @@ def register(request):
         case 'email':
             if helper.validator.CheckAvailability.email(request.GET['contact']):
                 return JsonResponse({
-                    'status': 'refused',
+                    'status': 'Refused',
                     'reason': 'BadRequest',
                     'description': 'ContactAlreadyRegistered'
-                }, status=400)
+                }, status=409)
         case 'phone':
             if helper.validator.CheckAvailability.phone(request.GET['contact']):
                 return JsonResponse({
-                    'status': 'refused',
+                    'status': 'Refused',
                     'reason': 'BadRequest',
                     'description': 'ContactAlreadyRegistered'
-                }, status=400)
+                }, status=409)
         case _:
             return JsonResponse({
-                'status': 'refused',
+                'status': 'Refused',
                 'reason': 'BadRequest',
                 'description': 'NotValidContact'
             }, status=400)
 
-    id = helper.operator.register(
+    id = helper.DBOperator.register(
         request.GET['username'],
         request.GET['password'],
         **{contact_type: request.GET['contact']}
     )
 
-    token = helper.operator.create_token(request.META.get('HTTP_USER_AGENT'), id)
-
     return JsonResponse({
         'status': 'Done',
         'auth-data': {
             'id': id,
-            'token': token
+            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         },
         'user-data': {
             'name': request.GET['username'],
             'id': id
         }
-    })
+    }, status=200)
 
 
 def auth(request):
     if request.GET.get('username', None) is None \
             or request.GET.get('password') is None:
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'LackOfArguments'
         }, status=400)
@@ -106,22 +104,22 @@ def auth(request):
 
     if id is None:
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'UserNotFound'
-        }, status=400)
+        }, status=404)
 
     if not helper.DBOperator.auth(determining_login_type(request.GET['username']), request.GET['username'], request.GET['password']):
         return JsonResponse({
-            'status': 'refused',
+            'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'UserNotFound'
-        }, status=400)
+        }, status=404)
 
     return JsonResponse({
         'status': 'Done',
         'auth-data': {
             'id': id,
-            'token': helper.operator.create_token(request.META.get('HTTP_USER_AGENT'), id)
+            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }
-    })
+    }, status=200)
