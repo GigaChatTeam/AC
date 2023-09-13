@@ -1,6 +1,7 @@
 import re
 
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 
 from . import helper
 
@@ -17,6 +18,7 @@ def determining_login_type(input_string):
         return 'username'
 
 
+@require_http_methods(["GET", "POST"])
 def register(request):
     if request.GET.get('username', None) is None \
             or request.GET.get('password', None) is None \
@@ -91,6 +93,7 @@ def register(request):
     }, status=200)
 
 
+@require_http_methods(["GET"])
 def auth(request):
     if request.GET.get('username', None) is None \
             or request.GET.get('password') is None:
