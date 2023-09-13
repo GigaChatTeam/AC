@@ -12,15 +12,9 @@ def register(login, password, *, email=None, phone=None):
     cursor = connection.cursor()
 
     cursor.execute('''
-        INSERT INTO accounts (username, password, email, phone)
-        VALUES (%s, %s, %s, %s)
-    ''', (login, generator.Hasher.hash(password).decode(), email, phone))
-
-    cursor.execute('''
-        SELECT id
-        FROM accounts
-        WHERE username = %s
-    ''', (login,))
+        INSERT INTO public.accounts (username, password, created, email, phone)
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING id''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now(), email, phone))
 
     try:
         id = cursor.fetchone()[0]
@@ -28,7 +22,7 @@ def register(login, password, *, email=None, phone=None):
         return
     else:
         cursor.execute('''
-            INSERT INTO changes (account_id, nickname, password)
+            INSERT INTO public.accounts_changes (client, nickname, password)
             VALUES (%s, %s, %s)
         ''', (id, [datetime.datetime.now()], [datetime.datetime.now()]))
 
@@ -44,23 +38,24 @@ def auth(login_type, login, password):
         case 'username':
             cursor.execute('''
                 SELECT password
-                FROM accounts
-                WHERE username = %s
+                FROM public.accounts
+                WHERE
+                    username = %s
             ''', (login,))
         case 'email':
             cursor.execute('''
                 SELECT password
-                FROM accounts
-                WHERE email = %s
+                FROM public.accounts
+                WHERE
+                    email = %s
             ''', (login,))
         case 'phone':
             cursor.execute('''
                 SELECT password
-                FROM accounts
-                WHERE phone = %s
+                FROM public.accounts
+                WHERE
+                    phone = %s
             ''', (login,))
-        case _:
-            raise ValueError(f'Unknown login type: {login_type}')
 
     try:
         return generator.Hasher.verify(password, cursor.fetchone()[0].encode())
@@ -75,23 +70,24 @@ def check(login_type, login):
         case 'username':
             cursor.execute('''
                 SELECT id
-                FROM accounts
-                WHERE username = %s
+                FROM public.accounts
+                WHERE
+                    username = %s
             ''', (login,))
         case 'email':
             cursor.execute('''
                 SELECT id
-                FROM accounts
-                WHERE email = %s
+                FROM public.accounts
+                WHERE
+                    email = %s
             ''', (login,))
         case 'phone':
             cursor.execute('''
                 SELECT id
-                FROM accounts
-                WHERE phone = %s
+                FROM public.accounts
+                WHERE
+                    phone = %s
             ''', (login,))
-        case _:
-            raise ValueError(f'Unknown login type: {login_type}')
 
     try:
         return bool(cursor.fetchone())
@@ -105,7 +101,7 @@ def create_token(agent, id):
     token = generator.gen_token(id)
 
     cursor.execute('''
-        INSERT INTO tokens (account_id, agent, token, start)
+        INSERT INTO public.tokens (client, agent, token, start)
         VALUES (%s, %s, %s, %s)
     ''', (id, agent, generator.Hasher.hash(token).decode(), datetime.datetime.now()))
 
@@ -119,8 +115,9 @@ def auth_token(id, token):
 
     cursor.execute('''
         SELECT token
-        FROM tokens
-        WHERE account_id = %s
+        FROM public.tokens
+        WHERE
+            client = %s
     ''', (id,))
 
     try:
@@ -136,8 +133,9 @@ def get_id(username):
 
     cursor.execute('''
         SELECT id
-        FROM accounts
-        WHERE username = %s
+        FROM public.accounts
+        WHERE
+            username = %s
     ''', (username,))
 
     try:
