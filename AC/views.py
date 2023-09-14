@@ -125,3 +125,9 @@ def auth(request):
             'token': helper.operator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }
     })
+
+
+class Confirmation:
+    @staticmethod
+    def email(request):
+        pass

@@ -9,8 +9,8 @@ def save_token(id, token):
     cursor = connection.cursor()
 
     cursor.execute('''
-    INSERT INTO public.ttokens (client, token, hashed, extradition, intentions)
-    VALUES (%s, %s, FALSE, %s, ARRAY['CONFIRM', 'EMAIL'])
+        INSERT INTO public.ttokens (client, token, hashed, extradition, intentions)
+        VALUES (%s, %s, FALSE, %s, ARRAY['CONFIRM', 'EMAIL'])
     ''', (id, token, datetime.datetime.now()))
 
     connection.commit()
@@ -20,13 +20,13 @@ def verify_token(id, token):
     cursor = connection.cursor()
 
     cursor.execute('''
-    SELECT token
-    FROM public.ttokens
-    WHERE
-        client = 1 AND
-        intentions = ARRAY['CONFIRM', 'EMAIL'] AND
-        CURRENT_TIMESTAMP - extradition <= INTERVAL '4 hours' AND
-        blocked IS NULL
+        SELECT token
+        FROM public.ttokens
+        WHERE
+            client = 1 AND
+            intentions = ARRAY['CONFIRM', 'EMAIL'] AND
+            CURRENT_TIMESTAMP - extradition <= INTERVAL '4 hours' AND
+            blocked IS NULL
     ''', (id,))
 
     if token in cursor.fetchall():
@@ -47,6 +47,6 @@ def close_tokens(id):
             client = %s AND
             intentions = ARRAY['CONFIRM', 'EMAIL'] AND
             blocked IS NULL
-        ''', (datetime.datetime.now(), id))
+    ''', (datetime.datetime.now(), id))
 
     connection.commit()
