@@ -1,6 +1,6 @@
 import re
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseServerError
 from django.views.decorators.http import require_http_methods
 
 from . import helper
@@ -80,17 +80,24 @@ def register(request):
         **{contact_type: request.GET['contact']}
     )
 
-    return JsonResponse({
+    if id is None:
+        return HttpResponseServerError()
+
+    response = {
         'status': 'Done',
-        'auth-data': {
-            'id': id,
-            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
-        },
         'user-data': {
             'name': request.GET['username'],
             'id': id
         }
-    }, status=200)
+    }
+
+    if request.method == 'POST' and request.POST.get('create_token', 'false') == 'false':
+        response['auth-data'] = {
+            'id': id,
+            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
+        }
+
+    return JsonResponse(response, status=200)
 
 
 @require_http_methods(["GET"])

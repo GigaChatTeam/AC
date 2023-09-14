@@ -17,7 +17,7 @@ Arguments
 * * `username` - desired user name
 * * `password` - desired account password
 * * `contact` - user's email/phone number
-* POST (not implemented)
+* POST
 * * `username` - desired user name
 * * `password` - desired account password
 * * `contact` - user's email/phone number
@@ -33,14 +33,24 @@ Returning (JSON)
 * * `user-data`
 * * * `id`: int - id of the created user
 * * * `name`: str - name of the created user
-* GET | 400
+* POST | 200
+* * `status`: str - `Done`
+* * (if required) `auth-data`
+* * * `id`: int - id of the created user
+* * * `token`: str - full account access token
+* * `user-data`
+* * * `id`: int - id of the created user
+* * * `name`: str - name of the created user
+* GET/POST | 400
 * * `status`: str - `Refused`
 * * `reason`: str - `BadRequest`
 * * `description`: str - `LackOfArgument`/`BadName`/`BadPassword`/`NotValidContact`
-* GET | 409
+* GET/POST | 409
 * * `status`: str - `Refused`
 * * `reason`: str - `BadRequest`
 * * `description`: str - `UsernameAlreadyRegistered`/`ContactAlreadyRegistered`
+* GET/POST | 500
+* * Server error
 
 **Authorization**
 
