@@ -91,7 +91,7 @@ def register(request):
         }
     }
 
-    if request.method == 'POST' and request.POST.get('create_token', 'false') == 'false':
+    if not (request.method == 'POST' and request.POST.get('create_token', 'false') == 'false'):
         response['auth-data'] = {
             'id': id,
             'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
