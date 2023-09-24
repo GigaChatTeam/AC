@@ -142,3 +142,27 @@ def get_id(username):
         return cursor.fetchone()[0]
     except TypeError:
         return None
+
+
+class TokensControl:
+    @staticmethod
+    def revoke_token(client, *, method='OR', token=None, agent=None, time=None):
+        if method != 'OR' and method != 'AND':
+            raise ValueError
+
+        cursor = connection.cursor()
+
+        cursor.execute(f'''
+            UPDATE public.tokens
+            SET
+                ending = now()
+            WHERE
+                client = %s AND
+                token = %s {method}
+                agent = %s {method}
+                time = %s
+        ''', (client, token, agent, time))
+
+        connection.commit()
+
+        return cursor.rowcount
