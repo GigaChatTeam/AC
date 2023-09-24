@@ -22,7 +22,7 @@ def register(login, password, *, email=None, phone=None):
         return
     else:
         cursor.execute('''
-            INSERT INTO public.accounts_changes (client, nickname, password)
+            INSERT INTO public.accounts_changes (client, username, password)
             VALUES (%s, %s, %s)
         ''', (id, [datetime.datetime.now()], [datetime.datetime.now()]))
 
