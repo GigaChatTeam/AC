@@ -146,6 +146,20 @@ def get_id(username):
 
 class TokensControl:
     @staticmethod
+    def get_tokens(client, exist=True):
+        cursor = connection.cursor()
+
+        cursor.execute(f'''
+            SELECT agent, start {", ending" if exist is not None else ""}
+            FROM public.tokens
+            WHERE
+                client = %s AND
+                {"ending IS NULL" if exist else "ending IS NOT NULL" if exist is not None else "NULL IS NULL"}
+        ''', (client,))
+
+        return cursor.fetchall()
+
+    @staticmethod
     def revoke_token(client, *, method='OR', token=None, agent=None, time=None):
         if method != 'OR' and method != 'AND':
             raise ValueError
