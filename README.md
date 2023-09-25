@@ -79,3 +79,5 @@ Returning (JSON)
 * * `status`: str - `Refused`
 * * `reason`: str - `BadRequest`
 * * `description`: str - `UserNotFound`
+* GET/POST | 500
+* * Server error
