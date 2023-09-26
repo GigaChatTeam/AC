@@ -146,16 +146,26 @@ def get_id(username):
 
 class TokensControl:
     @staticmethod
-    def get_tokens(client, exist=True):
+    def get_valid_tokens(client):
         cursor = connection.cursor()
 
         cursor.execute(f'''
-            SELECT agent, start {", ending" if exist is not None else ""}
+            WITH logins AS (
+                SELECT logins
+                FROM public.tokens
+                WHERE
+                    client = %s
+            )
+            
+            SELECT
+                agent, start,
+                (logins[array_upper(logins, 1)] ->> 'time')::TIMESTAMP AS last_login,
+                (logins[array_upper(logins, 1)] ->> 'address')::CIDR AS last_address
             FROM public.tokens
             WHERE
                 client = %s AND
-                {"ending IS NULL" if exist else "ending IS NOT NULL" if exist is not None else "NULL IS NULL"}
-        ''', (client,))
+                ending IS NULL
+        ''', (client, client))
 
         return cursor.fetchall()
 
