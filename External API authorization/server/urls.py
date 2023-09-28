@@ -1,6 +1,11 @@
+from django.http import HttpResponse
 from django.urls import path
 
 from . import views
+
+
+def passer(request):
+    return HttpResponse(status=503)
 
 
 urlpatterns = [
@@ -8,10 +13,7 @@ urlpatterns = [
     path('register', views.register),
     path('auth', views.auth),
 
-    # API paths for managing Access tokens
-    path('confirm/email', views.Confirmation.email),
-
     # API paths for managing access tokens
-    path('control/tokens', views.control_tokens),
-    path('control/ttokens', views.control_ttokens)
+    path('control/tokens', passer),
+    path('control/ttokens', passer)
 ]
