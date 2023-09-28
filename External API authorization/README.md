@@ -1,5 +1,4 @@
 # GigaChat server point for authentication / registration
-HTTP point written with Python and Django 
 
 ***
 
