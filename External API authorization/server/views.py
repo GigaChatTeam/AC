@@ -19,6 +19,10 @@ def determining_login_type(input_string):
         return 'username'
 
 
+def ratelimited(request, exception):
+    return HttpResponse(status=429)
+
+
 @require_http_methods(["GET", "POST"])
 def register(request):
     if request.GET.get('username', None) is None \

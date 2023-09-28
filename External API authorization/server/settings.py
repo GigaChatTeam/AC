@@ -14,3 +14,9 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+MIDDLEWARE = (
+    'django_ratelimit.middleware.RatelimitMiddleware',
+)
+
+RATELIMIT_VIEW = 'server.views.ratelimited'
