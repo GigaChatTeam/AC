@@ -136,7 +136,6 @@ def auth(request):
     }, status=200)
 
 
-@ratelimit(key='ip', rate='5/m')
 @require_http_methods(['GET'])
 def check_token(request):
     if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
