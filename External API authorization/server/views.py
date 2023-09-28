@@ -23,6 +23,8 @@ def ratelimited(request, exception):
     return HttpResponse(status=429)
 
 
+@ratelimit(key='ip', rate='5/h')
+@ratelimit(key='get:username', rate='1/h')
 @require_http_methods(["GET", "POST"])
 def register(request):
     if request.GET.get('username', None) is None \
@@ -105,6 +107,8 @@ def register(request):
     return JsonResponse(response, status=200)
 
 
+@ratelimit(key='ip', rate='5/15m')
+@ratelimit(key='get:username', rate='5/12h')
 @require_http_methods(["GET"])
 def auth(request):
     if request.GET.get('username', None) is None \
@@ -140,6 +144,8 @@ def auth(request):
     }, status=200)
 
 
+@ratelimit(key='ip', rate='5/12h')
+@ratelimit(key='get:id', rate='3/h')
 @require_http_methods(['GET'])
 def check_token(request):
     if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
@@ -149,17 +155,25 @@ def check_token(request):
             'description': 'AuthorizationDenied'
         }, status=406)
 
-    return HttpResponse(status=503)
+    try:
+        result = helper.DBOperator.auth_token(int(request.GET['id']), request.GET['token'])
+    except ValueError:
+        return HttpResponse(status=400)
+
+    return JsonResponse({
+        'status': 'Done',
+        'reulst': result
+    }, status=200)
 
 
 @require_http_methods(['DELETE', 'GET'])
 def control_tokens(request):
-    if not helper.DBOperator.auth_token(request.GET.get('id', 0), request.GET.get('token', 'NULL')):
-        return JsonResponse({
-            'status': 'Refused',
-            'reason': 'BadRequest',
-            'description': 'AuthorizationDenied'
-        }, status=403)
+    # if not helper.DBOperator.auth_token(request.GET.get('id', 0), request.GET.get('token', 'NULL')):
+    #     return JsonResponse({
+    #         'status': 'Refused',
+    #         'reason': 'BadRequest',
+    #         'description': 'AuthorizationDenied'
+    #     }, status=403)
 
     return HttpResponse(status=503)
 
