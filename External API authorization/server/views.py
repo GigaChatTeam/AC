@@ -180,6 +180,7 @@ class TokensController:
 
         match request.method:
             case 'GET':
-                return JsonResponse(helper.DBOperator.TokensControl.get_valid_tokens(int(request.GET['id'])), safe=False)
+                return JsonResponse(helper.DBOperator.TokensControl.get_valid_tokens(int(request.GET['id'])),
+                                safe=False)
             case 'DELETE':
                 pass
