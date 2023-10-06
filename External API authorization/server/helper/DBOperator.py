@@ -167,7 +167,12 @@ class TokensControl:
                 ending IS NULL
         ''', (client, client))
 
-        return cursor.fetchall()
+        return [{
+            'agent': result[0],
+            'started': result[1],
+            'last_login': result[2],
+            'last_address': result[3]
+        } for result in cursor.fetchall()]
 
     @staticmethod
     def revoke_token(client, *, method='OR', token=None, agent=None, time=None):

@@ -1,6 +1,6 @@
 import re
 
-from django.http import JsonResponse, HttpResponseServerError, HttpResponse
+from django.http import JsonResponse, HttpResponseServerError, HttpResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
@@ -144,46 +144,42 @@ def auth(request):
     }, status=200)
 
 
-@ratelimit(key='ip', rate='5/12h')
-@ratelimit(key='get:id', rate='3/h')
-@require_http_methods(['GET'])
-def check_token(request):
-    if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
-        return JsonResponse({
-            'status': 'Refused',
-            'reason': 'BadRequest',
-            'description': 'AuthorizationDenied'
-        }, status=406)
-
-    try:
-        result = helper.DBOperator.auth_token(int(request.GET['id']), request.GET['token'])
-    except ValueError:
-        return HttpResponse(status=400)
-
-    return JsonResponse({
-        'status': 'Done',
-        'reulst': result
-    }, status=200)
-
-
-@require_http_methods(['DELETE', 'GET'])
-def control_tokens(request):
-    # if not helper.DBOperator.auth_token(request.GET.get('id', 0), request.GET.get('token', 'NULL')):
-    #     return JsonResponse({
-    #         'status': 'Refused',
-    #         'reason': 'BadRequest',
-    #         'description': 'AuthorizationDenied'
-    #     }, status=403)
-
-    return HttpResponse(status=503)
-
-
-@require_http_methods(['DELETE', 'GET'])
-def control_ttokens(request):
-    return HttpResponse(status=503)
-
-
-class Confirmation:
+class TokensController:
     @staticmethod
-    def email(request):
-        pass
+    # @ratelimit(key='ip', rate='24/24h')
+    # @ratelimit(key='get:id', rate='12/h')
+    def check_validity(request):
+        if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
+            return JsonResponse({
+                'status': 'Refused',
+                'reason': 'BadRequest',
+                'description': 'LackOfArgumentsAuthorization'
+            }, status=406)
+
+        return JsonResponse({
+            'status': 'Done',
+            'data': helper.DBOperator.auth_token(request.GET['id'], request.GET['token'])
+        })
+
+    @staticmethod
+    @require_http_methods(["GET", "DELETE"])
+    def control_tokens(request: HttpRequest):
+        if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
+            return JsonResponse({
+                'status': 'Refused',
+                'reason': 'BadRequest',
+                'description': 'LackOfArgumentsAuthorization'
+            }, status=406)
+
+        if not helper.DBOperator.auth_token(request.GET['id'], request.GET['token']):
+            return JsonResponse({
+                'status': 'Refused',
+                'reason': 'BadRequest',
+                'description': 'UserNotFound'
+            }, status=404)
+
+        match request.method:
+            case 'GET':
+                return JsonResponse(helper.DBOperator.TokensControl.get_valid_tokens(int(request.GET['id'])), safe=False)
+            case 'DELETE':
+                pass
