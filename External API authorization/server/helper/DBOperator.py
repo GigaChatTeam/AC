@@ -159,8 +159,8 @@ class TokensControl:
             
             SELECT
                 agent, start,
-                (logins[array_upper(logins, 1)] ->> 'time')::TIMESTAMP AS last_login,
-                (logins[array_upper(logins, 1)] ->> 'address')::CIDR AS last_address
+                (logins[array_upper(logins, 1)] ->> 'time')::TIMESTAMP,
+                (logins[array_upper(logins, 1)] ->> 'address')::CIDR
             FROM public.tokens
             WHERE
                 client = %s AND
