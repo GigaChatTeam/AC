@@ -14,6 +14,6 @@ urlpatterns = [
     path('auth', views.auth),
 
     # API paths for managing access tokens
-    path('control/tokens', views.check_token),
+    path('control/tokens', passer),
     path('control/ttokens', passer)
 ]

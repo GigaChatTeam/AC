@@ -99,7 +99,7 @@ def register(request):
     }
 
     if not (request.method == 'POST' and request.POST.get('create_token', 'false') == 'false'):
-        response['auth_data'] = {
+        response['data'] = {
             'id': id,
             'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }
@@ -137,7 +137,7 @@ def auth(request):
 
     return JsonResponse({
         'status': 'Done',
-        'auth_data': {
+        'data': {
             'id': id,
             'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }

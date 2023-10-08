@@ -26,7 +26,7 @@ Returning (JSON)
 
 * GET | 200
 * * `status`: str - `Done`
-* * `auth_data`
+* * `data`
 * * * `id`: int - id of the created user
 * * * `token`: str - full account access token
 * * `user-data`
@@ -34,7 +34,7 @@ Returning (JSON)
 * * * `name`: str - name of the created user
 * POST | 200
 * * `status`: str - `Done`
-* * (if required) `auth_data`
+* * (if required) `data`
 * * * `id`: int - id of the created user
 * * * `token`: str - full account access token
 * * `user-data`
@@ -67,7 +67,7 @@ Returning (JSON)
 
 * GET | 200
 * * `status`: str - `Done`
-* * `auth_data`
+* * `data`
 * * * `id`: int - id of the created user
 * * * `token`: str - full account access token
 * GET | 400
