@@ -4,7 +4,7 @@
 
 # API
 
-**Registration**
+## Registration
 
 Entry point
 
@@ -51,7 +51,7 @@ Returning (JSON)
 * GET/POST | 500
 * * Server error
 
-**Authorization**
+## Authorization
 
 Entry point
 
@@ -80,3 +80,81 @@ Returning (JSON)
 * * `description`: str - `UserNotFound`
 * GET/POST | 500
 * * Server error
+
+
+## Token controller
+
+### Verify token
+
+Entry point
+
+* GET `http://<?>/control/tokens/get`
+
+Arguments
+
+* GET
+* * `id` - username/email/phone number of the account
+* * `token` - account password
+
+Returning (JSON)
+
+* GET | 200
+* * `status`: str - `Done`
+* * `data`: bool - is there such a working token
+* GET | 406
+* * `status`: str - `Refused`
+* * `reason`: str - `BadRequest`
+* * `description`: str - `LackOfArgumentsAuthorization`
+
+### Get tokens info
+
+Entry point
+
+* GET `http://<?>/control/tokens`
+
+Arguments
+
+* GET
+* * `id` - username/email/phone number of the account
+* * `token` - account password
+
+Returning (JSON)
+
+* GET | 200
+* * _Not completed_
+* GET | 404
+* * `status`: str - `Refused`
+* * `reason`: str - `BadRequest`
+* * `description`: str - `UserNotFound`
+* GET | 406
+* * `status`: str - `Refused`
+* * `reason`: str - `BadRequest`
+* * `description`: str - `LackOfArgumentsAuthorization`
+
+### Delete tokens
+
+Entry point
+
+* DELETE `http://<?>/control/tokens`
+
+Arguments
+
+* GET
+* * `id` - username/email/phone number of the account
+* * `token` - account password
+* * `agent`: optional - which substring should include the name of the token agent
+* * `started`: optional - before what date (`%Y-%m-%d-%H:%M:%S`) should the token be created for deletion
+
+Returning (JSON)
+
+* DELETE | 200
+* * `status`: str - `Done`
+* * `count`: infInt - count of deleted tokens
+* DELETE | 404
+* * `status`: str - `Refused`
+* * `reason`: str - `BadRequest`
+* * `description`: str - `UserNotFound`
+* DELETE | 406
+* * `status`: str - `Refused`
+* * `reason`: str - `BadRequest`
+* * `description`: str - `LackOfArgumentsAuthorization`

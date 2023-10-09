@@ -1,6 +1,7 @@
 import re
+from datetime import datetime
 
-from django.http import JsonResponse, HttpResponseServerError, HttpResponse, HttpRequest
+from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
@@ -128,7 +129,10 @@ def auth(request):
             'description': 'UserNotFound'
         }, status=404)
 
-    if not helper.DBOperator.auth(determining_login_type(request.GET['username']), request.GET['username'], request.GET['password']):
+    if not helper.DBOperator.auth(
+            determining_login_type(request.GET['username']),
+            request.GET['username'],
+            request.GET['password']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
@@ -146,8 +150,8 @@ def auth(request):
 
 class TokensController:
     @staticmethod
-    # @ratelimit(key='ip', rate='24/24h')
-    # @ratelimit(key='get:id', rate='12/h')
+    @ratelimit(key='ip', rate='24/24h')
+    @ratelimit(key='get:id', rate='12/h')
     def check_validity(request):
         if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
             return JsonResponse({
@@ -163,7 +167,7 @@ class TokensController:
 
     @staticmethod
     @require_http_methods(["GET", "DELETE"])
-    def control_tokens(request: HttpRequest):
+    def control_tokens(request):
         if request.GET.get('id', 0) == 0 or request.GET.get('token', 'NULL') == 'NULL':
             return JsonResponse({
                 'status': 'Refused',
@@ -181,6 +185,17 @@ class TokensController:
         match request.method:
             case 'GET':
                 return JsonResponse(helper.DBOperator.TokensControl.get_valid_tokens(int(request.GET['id'])),
-                                safe=False)
+                                    safe=False)
             case 'DELETE':
-                pass
+                try:
+                    time = datetime.strptime(request.GET.get('started', ''), "%Y-%m-%d-%H:%M:%S")
+                except ValueError:
+                    time = None
+
+                return JsonResponse({
+                    'status': 'Done',
+                    'count': helper.DBOperator.TokensControl.revoke_token(
+                        request.GET['id'],
+                        agent=request.GET.get('agent', None),
+                        time=time)
+                })
