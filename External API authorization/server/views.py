@@ -186,7 +186,7 @@ class TokensController:
                                     safe=False)
             case 'DELETE':
                 try:
-                    time = datetime.strptime(request.GET.get('agent', ''), "%Y-%m-%d-%H:%M:%S")
+                    time = datetime.strptime(request.GET.get('started', ''), "%Y-%m-%d-%H:%M:%S")
                 except ValueError:
                     time = None
 
