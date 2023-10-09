@@ -175,9 +175,9 @@ class TokensControl:
         } for result in cursor.fetchall()]
 
     @staticmethod
-    def revoke_token(client, *, method='OR', token=None, agent=None, time=None):
-        if method != 'OR' and method != 'AND':
-            raise ValueError
+    def revoke_token(client, *, agent=None, time=None):
+        if agent is not None:
+            agent = f'%{agent}%'
 
         cursor = connection.cursor()
 
@@ -186,11 +186,11 @@ class TokensControl:
             SET
                 ending = now()
             WHERE
-                client = %s AND
-                token = %s {method}
-                agent = %s {method}
-                time = %s
-        ''', (client, token, agent, time))
+                client = %s AND (
+                    agent LIKE %s OR
+                    start < %s
+                ) AND ending IS NULL
+        ''', (client, agent, time))
 
         connection.commit()
 

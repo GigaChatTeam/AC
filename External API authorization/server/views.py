@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
@@ -128,7 +129,8 @@ def auth(request):
             'description': 'UserNotFound'
         }, status=404)
 
-    if not helper.DBOperator.auth(determining_login_type(request.GET['username']), request.GET['username'], request.GET['password']):
+    if not helper.DBOperator.auth(determining_login_type(request.GET['username']), request.GET['username'],
+                                  request.GET['password']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
@@ -181,6 +183,17 @@ class TokensController:
         match request.method:
             case 'GET':
                 return JsonResponse(helper.DBOperator.TokensControl.get_valid_tokens(int(request.GET['id'])),
-                                safe=False)
+                                    safe=False)
             case 'DELETE':
-                pass
+                try:
+                    time = datetime.strptime(request.GET.get('agent', ''), "%Y-%m-%d-%H:%M:%S")
+                except ValueError:
+                    time = None
+
+                return JsonResponse({
+                    'status': 'Done',
+                    'count': helper.DBOperator.TokensControl.revoke_token(
+                        request.GET['id'],
+                        agent=request.GET.get('agent', None),
+                        time=time)
+                })
