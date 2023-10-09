@@ -187,7 +187,7 @@ class TokensControl:
                 ending = now()
             WHERE
                 client = %s AND (
-                    agent LIKE %s OR
+                    agent LIKE %s {'OR' if agent is None or time is None else 'AND'}
                     start < %s
                 ) AND ending IS NULL
         ''', (client, agent, time))
