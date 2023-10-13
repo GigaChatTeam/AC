@@ -9,12 +9,6 @@ def passer(request):
 
 
 urlpatterns = [
-    # registration and authorization API
     path('register', views.register),
-    path('auth', views.auth),
-
-    # API paths for managing access tokens
-    path('control/tokens/get', views.TokensController.check_validity),
-    path('control/tokens', views.TokensController.control_tokens),
-    path('control/ttokens', passer)
+    path('auth', views.auth)
 ]
