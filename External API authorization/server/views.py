@@ -1,23 +1,8 @@
-import re
-from datetime import datetime
-
 from django.http import JsonResponse, HttpResponseServerError, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
 from . import helper
-
-
-def determining_login_type(input_string):
-    phone_pattern = r'^\+[0-9]+$'
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-
-    if re.match(phone_pattern, input_string):
-        return 'phone'
-    elif re.match(email_pattern, input_string):
-        return 'email'
-    else:
-        return 'username'
 
 
 def ratelimited(request, exception):
@@ -70,9 +55,9 @@ def register(request):
             'description': 'UsernameAlreadyRegistered'
         }, status=409)
 
-    form['contact_type'] = determining_login_type(form['contact'])
+    form['contact_type'] = helper.determining_login_type(form['contact'])
 
-    match form['contact']:
+    match form['contact_type']:
         case 'email':
             if helper.validator.CheckAvailability.email(form['contact']):
                 return JsonResponse({
@@ -147,7 +132,7 @@ def auth(request):
         }, status=404)
 
     if not helper.DBOperator.auth(
-            determining_login_type(form['username']),
+            helper.determining_login_type(form['username']),
             request.GET['username'],
             request.GET['password']):
         return JsonResponse({
