@@ -26,50 +26,62 @@ def ratelimited(request, exception):
 
 @ratelimit(key='ip', rate='5/h')
 @ratelimit(key='get:username', rate='1/h')
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["POST"])
 def register(request):
-    if request.GET.get('username', None) is None \
-            or request.GET.get('password', None) is None \
-            or request.GET.get('contact', None) is None:
+    if request.GET.get('password', None) is not None:
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
-            'description': 'LackOfArguments'
+            'description': 'UnsafeHandling'
         }, status=406)
 
-    if not helper.validator.validate_name(request.GET['username']):
+    form = {
+        'username': request.POST.get('username', None) or request.GET.get('username', None),
+        'password': request.POST.get('password'),
+        'contact': request.POST.get('contact', None) or request.GET.get('contact', None)
+    }
+
+    if form['username'] is None or form['password'] is None or form['contact'] is None:
+        return JsonResponse({
+            'status': 'Refused',
+            'reason': 'BadRequest',
+            'description': 'LackOfArguments',
+            'arguments': [key for key, value in form.items() if value is None]
+        }, status=406)
+
+    if not helper.validator.validate_name(form['username']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'BadName'
         }, status=400)
 
-    if not helper.validator.validate_password(request.GET['password']):
+    if not helper.validator.validate_password(form['password']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'BadPassword'
         }, status=400)
 
-    if helper.validator.CheckAvailability.username(request.GET['username']):
+    if helper.validator.CheckAvailability.username(form['username']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
             'description': 'UsernameAlreadyRegistered'
         }, status=409)
 
-    contact_type = determining_login_type(request.GET['contact'])
+    form['contact_type'] = determining_login_type(form['contact'])
 
-    match contact_type:
+    match form['contact']:
         case 'email':
-            if helper.validator.CheckAvailability.email(request.GET['contact']):
+            if helper.validator.CheckAvailability.email(form['contact']):
                 return JsonResponse({
                     'status': 'Refused',
                     'reason': 'BadRequest',
                     'description': 'ContactAlreadyRegistered'
                 }, status=409)
         case 'phone':
-            if helper.validator.CheckAvailability.phone(request.GET['contact']):
+            if helper.validator.CheckAvailability.phone(form['contact']):
                 return JsonResponse({
                     'status': 'Refused',
                     'reason': 'BadRequest',
@@ -83,44 +95,49 @@ def register(request):
             }, status=400)
 
     id = helper.DBOperator.register(
-        request.GET['username'],
-        request.GET['password'],
-        **{contact_type: request.GET['contact']}
+        form['username'],
+        form['password'],
+        **{form['contact_type']: form['contact']}
     )
 
     if id is None:
         return HttpResponseServerError()
 
-    response = {
+    return JsonResponse({
         'status': 'Done',
-        'user-data': {
-            'name': request.GET['username'],
-            'id': id
-        }
-    }
-
-    if not (request.method == 'POST' and request.POST.get('create_token', 'false') == 'false'):
-        response['data'] = {
+        'data': {
             'id': id,
+            'username': form['username'],
             'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }
-
-    return JsonResponse(response, status=200)
+    }, status=200)
 
 
 @ratelimit(key='ip', rate='5/15m')
 @ratelimit(key='get:username', rate='5/12h')
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def auth(request):
-    if request.GET.get('username', None) is None \
-            or request.GET.get('password') is None:
+    if request.GET.get('password', None) is not None:
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
-            'description': 'LackOfArguments'
+            'description': 'UnsafeHandling'
         }, status=406)
 
-    id = helper.DBOperator.get_id(request.GET['username'])
+    form = {
+        'username': request.POST.get('username', None) or request.GET.get('username', None),
+        'password': request.POST.get('password')
+    }
+
+    if form['username'] is None or form['password'] is None:
+        return JsonResponse({
+            'status': 'Refused',
+            'reason': 'BadRequest',
+            'description': 'LackOfArguments',
+            'arguments': [key for key, value in form.items() if value is None]
+        }, status=406)
+
+    id = helper.DBOperator.get_id(form['username'])
 
     if id is None:
         return JsonResponse({
@@ -130,7 +147,7 @@ def auth(request):
         }, status=404)
 
     if not helper.DBOperator.auth(
-            determining_login_type(request.GET['username']),
+            determining_login_type(form['username']),
             request.GET['username'],
             request.GET['password']):
         return JsonResponse({
@@ -143,6 +160,7 @@ def auth(request):
         'status': 'Done',
         'data': {
             'id': id,
+            'username': form['username'],
             'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
         }
     }, status=200)
