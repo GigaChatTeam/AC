@@ -14,12 +14,8 @@ def register(login, password, *, email=None, phone=None):
     cursor.execute('''
         INSERT INTO public.accounts (username, password, created)
         VALUES (%s, %s, %s, %s, %s)
-        RETURNING id''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now(), email, phone))
-
-    cursor.execute('''
-        INSERT INTO public.confirmations (email, phone)
-        VALUES (%s, %s)
-        RETURNING id''', (email, phone))
+        RETURNING id
+    ''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now(), email, phone))
 
     try:
         id = cursor.fetchone()[0]
@@ -30,6 +26,11 @@ def register(login, password, *, email=None, phone=None):
             INSERT INTO public.accounts_changes (client, username, password)
             VALUES (%s, %s, %s)
         ''', (id, [datetime.datetime.now()], [datetime.datetime.now()]))
+
+        cursor.execute('''
+            INSERT INTO public.confirmations (client, email, phone)
+            VALUES (%s, %s)
+        ''', (id, email, phone))
 
         connection.commit()
 
