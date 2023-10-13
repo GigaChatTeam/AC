@@ -12,9 +12,14 @@ def register(login, password, *, email=None, phone=None):
     cursor = connection.cursor()
 
     cursor.execute('''
-        INSERT INTO public.accounts (username, password, created, email, phone)
+        INSERT INTO public.accounts (username, password, created)
         VALUES (%s, %s, %s, %s, %s)
         RETURNING id''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now(), email, phone))
+
+    cursor.execute('''
+        INSERT INTO public.confirmations (email, phone)
+        VALUES (%s, %s)
+        RETURNING id''', (email, phone))
 
     try:
         id = cursor.fetchone()[0]
@@ -56,6 +61,8 @@ def auth(login_type, login, password):
                 WHERE
                     phone = %s
             ''', (login,))
+        case _:
+            raise ValueError('Invalid type')
 
     try:
         return generator.Hasher.verify(password, cursor.fetchone()[0].encode())
@@ -76,15 +83,15 @@ def check(login_type, login):
             ''', (login,))
         case 'email':
             cursor.execute('''
-                SELECT id
-                FROM public.accounts
+                SELECT client
+                FROM public.confirmations
                 WHERE
                     email = %s
             ''', (login,))
         case 'phone':
             cursor.execute('''
-                SELECT id
-                FROM public.accounts
+                SELECT client
+                FROM public.confirmations
                 WHERE
                     phone = %s
             ''', (login,))
@@ -110,24 +117,6 @@ def create_token(agent, id):
     return token
 
 
-def auth_token(id, token):
-    cursor = connection.cursor()
-
-    cursor.execute('''
-        SELECT token
-        FROM public.tokens
-        WHERE
-            client = %s
-    ''', (id,))
-
-    try:
-        hash = cursor.fetchone()[0]
-    except TypeError:
-        return False
-    else:
-        return generator.Hasher.verify(token, hash.encode())
-
-
 def get_id(username):
     cursor = connection.cursor()
 
@@ -142,56 +131,3 @@ def get_id(username):
         return cursor.fetchone()[0]
     except TypeError:
         return None
-
-
-class TokensControl:
-    @staticmethod
-    def get_valid_tokens(client):
-        cursor = connection.cursor()
-
-        cursor.execute(f'''
-            WITH logins AS (
-                SELECT logins
-                FROM public.tokens
-                WHERE
-                    client = %s
-            )
-            
-            SELECT
-                agent, start,
-                (logins[array_upper(logins, 1)] ->> 'time')::TIMESTAMP,
-                (logins[array_upper(logins, 1)] ->> 'address')::CIDR
-            FROM public.tokens
-            WHERE
-                client = %s AND
-                ending IS NULL
-        ''', (client, client))
-
-        return [{
-            'agent': result[0],
-            'started': result[1],
-            'last_login': result[2],
-            'last_address': result[3]
-        } for result in cursor.fetchall()]
-
-    @staticmethod
-    def revoke_token(client, *, agent=None, time=None):
-        if agent is not None:
-            agent = f'%{agent}%'
-
-        cursor = connection.cursor()
-
-        cursor.execute(f'''
-            UPDATE public.tokens
-            SET
-                ending = now()
-            WHERE
-                client = %s AND (
-                    agent LIKE %s {'OR' if agent is None or time is None else 'AND'}
-                    start < %s
-                ) AND ending IS NULL
-        ''', (client, agent, time))
-
-        connection.commit()
-
-        return cursor.rowcount
