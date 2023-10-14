@@ -9,7 +9,7 @@ def ratelimited(request, exception):
     return HttpResponse(status=429)
 
 
-@ratelimit(key='ip', rate='5/h')
+#@ratelimit(key='ip', rate='5/h')
 @ratelimit(key='get:username', rate='1/h')
 @require_http_methods(["POST"])
 def register(request):
@@ -133,8 +133,8 @@ def auth(request):
 
     if not helper.DBOperator.auth(
             helper.determining_login_type(form['username']),
-            request.GET['username'],
-            request.GET['password']):
+            form['username'],
+            form['password']):
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',

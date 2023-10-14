@@ -13,9 +13,9 @@ def register(login, password, *, email=None, phone=None):
 
     cursor.execute('''
         INSERT INTO public.accounts (username, password, created)
-        VALUES (%s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s)
         RETURNING id
-    ''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now(), email, phone))
+    ''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now()))
 
     try:
         id = cursor.fetchone()[0]
@@ -29,7 +29,7 @@ def register(login, password, *, email=None, phone=None):
 
         cursor.execute('''
             INSERT INTO public.confirmations (client, email, phone)
-            VALUES (%s, %s)
+            VALUES (%s, %s, %s)
         ''', (id, email, phone))
 
         connection.commit()
