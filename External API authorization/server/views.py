@@ -9,8 +9,6 @@ def ratelimited(request, exception):
     return HttpResponse(status=429)
 
 
-#@ratelimit(key='ip', rate='5/h')
-@ratelimit(key='get:username', rate='1/h')
 @require_http_methods(["POST"])
 def register(request):
     if request.GET.get('password', None) is not None:
@@ -98,8 +96,6 @@ def register(request):
     }, status=200)
 
 
-@ratelimit(key='ip', rate='5/15m')
-@ratelimit(key='get:username', rate='5/12h')
 @require_http_methods(["POST"])
 def auth(request):
     if request.GET.get('password', None) is not None:
