@@ -1,3 +1,5 @@
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=GigaChatTeam_AC)](https://sonarcloud.io/summary/new_code?id=GigaChatTeam_AC)
+
 | First Header  | Second Header |
 | ------------- | ------------- |
 | Vulnerabilities  | [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=GigaChatTeam_AC&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=GigaChatTeam_AC)  |
