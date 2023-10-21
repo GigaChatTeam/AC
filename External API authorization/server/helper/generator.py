@@ -1,5 +1,4 @@
 from secrets import token_hex
-import string
 
 import bcrypt
 
