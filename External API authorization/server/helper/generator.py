@@ -1,4 +1,4 @@
-import random
+from secrets import token_hex
 import string
 
 import bcrypt
@@ -15,6 +15,4 @@ class Hasher:
 
 
 def gen_token(id):
-    return f'user.{id}.' + ''.join(
-        random.choice(string.ascii_letters + string.digits) for _ in range(66 - len(str(id)))
-    )
+    return f'user.{id}.' + token_hex(66 - len(str(id)))
