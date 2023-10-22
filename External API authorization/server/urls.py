@@ -4,8 +4,12 @@ from django.urls import path
 from . import views
 
 
-def passer(request):
+def passer(_):
     return HttpResponse(status=503)
+
+
+def ratelimited(*_):
+    return HttpResponse(status=429)
 
 
 urlpatterns = [

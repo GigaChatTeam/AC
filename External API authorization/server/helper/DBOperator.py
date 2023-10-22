@@ -18,23 +18,23 @@ def register(login, password, *, email=None, phone=None):
     ''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now()))
 
     try:
-        id = cursor.fetchone()[0]
-    except TypeError:
+        user_id = cursor.fetchone()[0]
+    except IndexError:
         return
     else:
         cursor.execute('''
             INSERT INTO public.accounts_changes (client, username, password)
             VALUES (%s, %s, %s)
-        ''', (id, [datetime.datetime.now()], [datetime.datetime.now()]))
+        ''', (user_id, [datetime.datetime.now()], [datetime.datetime.now()]))
 
         cursor.execute('''
             INSERT INTO public.confirmations (client, email, phone)
             VALUES (%s, %s, %s)
-        ''', (id, email, phone))
+        ''', (user_id, email, phone))
 
         connection.commit()
 
-        return id
+        return user_id
 
 
 def auth(login_type, login, password):

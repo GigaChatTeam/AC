@@ -3,10 +3,7 @@ from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
 from . import helper
-
-
-def ratelimited(request, exception):
-    return HttpResponse(status=429)
+from .settings import DEBUG
 
 
 @require_http_methods(["POST"])
@@ -77,21 +74,21 @@ def register(request):
                 'description': 'NotValidContact'
             }, status=400)
 
-    id = helper.DBOperator.register(
+    user_id = helper.DBOperator.register(
         form['username'],
         form['password'],
         **{form['contact_type']: form['contact']}
     )
 
-    if id is None:
+    if user_id is None:
         return HttpResponseServerError()
 
     return JsonResponse({
         'status': 'Done',
         'data': {
-            'id': id,
+            'id': user_id,
             'username': form['username'],
-            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
+            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), user_id)
         }
     }, status=200)
 
@@ -118,9 +115,9 @@ def auth(request):
             'arguments': [key for key, value in form.items() if value is None]
         }, status=406)
 
-    id = helper.DBOperator.get_id(form['username'])
+    user_id = helper.DBOperator.get_id(form['username'])
 
-    if id is None:
+    if user_id is None:
         return JsonResponse({
             'status': 'Refused',
             'reason': 'BadRequest',
@@ -140,8 +137,8 @@ def auth(request):
     return JsonResponse({
         'status': 'Done',
         'data': {
-            'id': id,
+            'id': user_id,
             'username': form['username'],
-            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), id)
+            'token': helper.DBOperator.create_token(request.META.get('HTTP_USER_AGENT'), user_id)
         }
     }, status=200)

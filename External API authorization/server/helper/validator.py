@@ -7,7 +7,7 @@ def validate_name(name):
 
 
 def validate_password(password):
-    return bool(re.match(r'(?=.*[0-9])(?=.*[!@#$%^&*])[\w\W]{6,64}', password))
+    return bool(re.match(r"(?=.*\d)(?=.*[!@#$%^&*]).{6,64}", password))
 
 
 class CheckAvailability:
