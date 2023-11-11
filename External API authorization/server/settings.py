@@ -19,8 +19,8 @@ DATABASES = {
 }
 
 
-MIDDLEWARE = (
-    'django_ratelimit.middleware.RatelimitMiddleware',
-)
+MIDDLEWARE = [
+    'django_ratelimit.middleware.RatelimitMiddleware'
+]
 
 RATELIMIT_VIEW = "server.urls.ratelimited"
