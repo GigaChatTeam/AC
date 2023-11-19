@@ -12,7 +12,7 @@ def register(login, password, *, email=None, phone=None):
     cursor = connection.cursor()
 
     cursor.execute('''
-        INSERT INTO public.accounts (username, password, created)
+        INSERT INTO users.accounts (username, password, created)
         VALUES (%s, %s, %s)
         RETURNING id
     ''', (login, generator.Hasher.hash(password).decode(), datetime.datetime.now()))
@@ -23,12 +23,12 @@ def register(login, password, *, email=None, phone=None):
         return
     else:
         cursor.execute('''
-            INSERT INTO public.accounts_changes (client, username, password)
+            INSERT INTO users.accounts_changes (client, username, password)
             VALUES (%s, %s, %s)
         ''', (user_id, [datetime.datetime.now()], [datetime.datetime.now()]))
 
         cursor.execute('''
-            INSERT INTO public.confirmations (client, email, phone)
+            INSERT INTO users.confirmations (client, email, phone)
             VALUES (%s, %s, %s)
         ''', (user_id, email, phone))
 
@@ -44,21 +44,21 @@ def auth(login_type, login, password):
         case 'username':
             cursor.execute('''
                 SELECT password
-                FROM public.accounts
+                FROM users.accounts
                 WHERE
                     username = %s
             ''', (login,))
         case 'email':
             cursor.execute('''
                 SELECT password
-                FROM public.accounts
+                FROM users.accounts
                 WHERE
                     email = %s
             ''', (login,))
         case 'phone':
             cursor.execute('''
                 SELECT password
-                FROM public.accounts
+                FROM users.accounts
                 WHERE
                     phone = %s
             ''', (login,))
@@ -78,21 +78,21 @@ def check(login_type, login):
         case 'username':
             cursor.execute('''
                 SELECT id
-                FROM public.accounts
+                FROM users.accounts
                 WHERE
                     username = %s
             ''', (login,))
         case 'email':
             cursor.execute('''
                 SELECT client
-                FROM public.confirmations
+                FROM users.confirmations
                 WHERE
                     email = %s
             ''', (login,))
         case 'phone':
             cursor.execute('''
                 SELECT client
-                FROM public.confirmations
+                FROM users.confirmations
                 WHERE
                     phone = %s
             ''', (login,))
@@ -109,7 +109,7 @@ def create_token(agent, id):
     token = generator.gen_token(id)
 
     cursor.execute('''
-        INSERT INTO public.tokens (client, agent, token, start)
+        INSERT INTO users.tokens (client, agent, token, start)
         VALUES (%s, %s, %s, %s)
     ''', (id, agent, generator.Hasher.hash(token).decode(), datetime.datetime.now()))
 
@@ -123,7 +123,7 @@ def get_id(username):
 
     cursor.execute('''
         SELECT id
-        FROM public.accounts
+        FROM users.accounts
         WHERE
             username = %s
     ''', (username,))
