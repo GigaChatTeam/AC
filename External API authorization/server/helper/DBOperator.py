@@ -32,8 +32,6 @@ def register(login, password, *, email=None, phone=None):
             VALUES (%s, %s, %s)
         ''', (user_id, email, phone))
 
-        connection.commit()
-
         return user_id
 
 
@@ -71,7 +69,7 @@ def auth(login_type, login, password):
         return None
 
 
-def check(login_type, login):
+def check(login_type: str, login: str) -> bool:
     cursor = connection.cursor()
 
     match login_type:
@@ -106,14 +104,20 @@ def check(login_type, login):
 def create_token(agent, id):
     cursor = connection.cursor()
 
-    token = generator.gen_token(id)
+    secret, key = generator.gen_token()
+
+    token = f'user.{id}.{secret}%{key}'
 
     cursor.execute('''
-        INSERT INTO users.tokens (client, agent, token, start)
-        VALUES (%s, %s, %s, %s)
-    ''', (id, agent, generator.Hasher.hash(token).decode(), datetime.datetime.now()))
-
-    connection.commit()
+        INSERT INTO users.tokens (client, agent, secret, key, start)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (
+        id,
+        agent,
+        generator.Hasher.hash(secret).decode(),
+        generator.Hasher.hash(key).decode(),
+        datetime.datetime.now())
+    )
 
     return token
 
