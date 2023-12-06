@@ -4,8 +4,8 @@ import psycopg2
 
 from . import generator
 
-
 connection = psycopg2.connect(host='localhost', port=5432, user='postgres', password='password')
+connection.autocommit = True
 
 
 def register(login, password, *, email=None, phone=None):

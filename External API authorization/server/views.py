@@ -1,9 +1,7 @@
-from django.http import JsonResponse, HttpResponseServerError, HttpResponse
+from django.http import JsonResponse, HttpResponseServerError
 from django.views.decorators.http import require_http_methods
-from django_ratelimit.decorators import ratelimit
 
 from . import helper
-from .settings import DEBUG
 
 
 @require_http_methods(["POST"])
@@ -95,13 +93,6 @@ def register(request):
 
 @require_http_methods(["POST"])
 def auth(request):
-    if request.GET.get('password', None) is not None:
-        return JsonResponse({
-            'status': 'Refused',
-            'reason': 'BadRequest',
-            'description': 'UnsafeHandling'
-        }, status=406)
-
     form = {
         'username': request.POST.get('username', None) or request.GET.get('username', None),
         'password': request.POST.get('password')

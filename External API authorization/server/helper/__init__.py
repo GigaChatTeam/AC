@@ -13,6 +13,7 @@ def determining_login_type(input_string):
     try:
         if phonenumbers.is_valid_number(phonenumbers.parse(input_string)):
             return 'phone'
-    except phonenumbers.phonenumberutil.NumberParseException: ...
-
-    return 'username'
+    except phonenumbers.phonenumberutil.NumberParseException:
+        ...
+    finally:
+        return 'username'

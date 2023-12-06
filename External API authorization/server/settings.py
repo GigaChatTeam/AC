@@ -1,6 +1,5 @@
 from decouple import config
 
-
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=list[str])
@@ -17,7 +16,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
 
 MIDDLEWARE = [
     'django_ratelimit.middleware.RatelimitMiddleware'
