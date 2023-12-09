@@ -118,13 +118,10 @@ def create_token(agent, id):
     cursor.execute('''
         INSERT INTO users.tokens (client, agent, secret, key, start)
         VALUES (%s, %s, %s, %s, %s)
-    ''', (
-        id,
-        agent,
-        generator.Hasher.hash(secret).decode(),
-        generator.Hasher.hash(key).decode(),
-        datetime.datetime.now())
-    )
+    ''', (id, agent,
+          generator.Hasher.hash(secret).decode(),
+          generator.Hasher.hash(key).decode(),
+          datetime.datetime.now()))
 
     return token
 

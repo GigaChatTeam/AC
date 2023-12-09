@@ -1,4 +1,4 @@
-from secrets import token_hex, token_urlsafe, token_bytes
+from secrets import token_hex, token_urlsafe
 
 import bcrypt
 
@@ -16,8 +16,10 @@ class Hasher:
 def gen_secret():
     return token_hex(36)
 
+
 def gen_key():
     return token_urlsafe(36)
+
 
 def gen_token():
     return gen_secret(), gen_key()
