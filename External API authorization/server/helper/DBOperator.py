@@ -113,7 +113,7 @@ def create_token(agent, id):
 
     secret, key = generator.gen_token()
 
-    token = f'user.{id}.{secret}%{key}'
+    token = f'user.{id}.{secret}.{key}'
 
     cursor.execute('''
         INSERT INTO users.tokens (client, agent, secret, key, start)
